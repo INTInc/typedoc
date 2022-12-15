@@ -78,7 +78,11 @@ export class Converter extends ChildableComponent<
 
     private _config?: CommentParserConfig;
     private _externalSymbolResolvers: Array<
-        (ref: DeclarationReference) => string | undefined
+        (
+            ref: DeclarationReference,
+            part?: CommentDisplayPart,
+            refl?: Reflection
+        ) => string | undefined
     > = [];
 
     get config(): CommentParserConfig {
@@ -277,9 +281,13 @@ export class Converter extends ChildableComponent<
     }
 
     /** @internal */
-    resolveExternalLink(ref: DeclarationReference): string | undefined {
+    resolveExternalLink(
+        ref: DeclarationReference,
+        part?: CommentDisplayPart,
+        refl?: Reflection
+    ): string | undefined {
         for (const resolver of this._externalSymbolResolvers) {
-            const resolved = resolver(ref);
+            const resolved = resolver(ref, part, refl);
             if (resolved) return resolved;
         }
     }
@@ -299,7 +307,7 @@ export class Converter extends ChildableComponent<
                 owner,
                 this.validation,
                 this.owner.logger,
-                (ref) => this.resolveExternalLink(ref)
+                (ref, part, refl) => this.resolveExternalLink(ref, part, refl)
             );
         } else {
             let warned = false;
@@ -318,7 +326,7 @@ export class Converter extends ChildableComponent<
                 warn,
                 this.validation,
                 this.owner.logger,
-                (ref) => this.resolveExternalLink(ref)
+                (ref, part, refl) => this.resolveExternalLink(ref, part, refl)
             );
         }
     }
