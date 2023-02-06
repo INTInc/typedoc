@@ -27,7 +27,12 @@ import type {
 } from "../utils/options/declaration";
 import { parseComment } from "./comments/parser";
 import { lexCommentString } from "./comments/rawLexer";
-import { resolvePartLinks, resolveLinks } from "./comments/linkResolver";
+import {
+    resolvePartLinks,
+    resolveLinks,
+    ExternalSymbolResolver,
+    ExternalResolveResult,
+} from "./comments/linkResolver";
 import type { DeclarationReference } from "./comments/declarationReference";
 
 /**
@@ -77,13 +82,7 @@ export class Converter extends ChildableComponent<
     externalSymbolLinkMappings!: Record<string, Record<string, string>>;
 
     private _config?: CommentParserConfig;
-    private _externalSymbolResolvers: Array<
-        (
-            ref: DeclarationReference,
-            part?: CommentDisplayPart,
-            refl?: Reflection
-        ) => string | undefined
-    > = [];
+    private _externalSymbolResolvers: Array<ExternalSymbolResolver> = [];
 
     get config(): CommentParserConfig {
         return this._config || this._buildCommentParserConfig();
@@ -121,8 +120,9 @@ export class Converter extends ChildableComponent<
 
     /**
      * Triggered when the converter has created a signature reflection.
-     * The listener will be given {@link Context}, {@link SignatureReflection} | {@link ProjectReflection} and
-     * `ts.SignatureDeclaration | ts.IndexSignatureDeclaration | ts.JSDocSignature | undefined`
+     * The listener will be given {@link Context}, {@link SignatureReflection} | {@link ProjectReflection} the declaration,
+     * `ts.SignatureDeclaration | ts.IndexSignatureDeclaration | ts.JSDocSignature | undefined`,
+     * and `ts.Signature | undefined`. The signature will be undefined if the created signature is an index signature.
      * @event
      */
     static readonly EVENT_CREATE_SIGNATURE = ConverterEvents.CREATE_SIGNATURE;
@@ -274,9 +274,7 @@ export class Converter extends ChildableComponent<
      * and user defined \{\@link\} tags which cannot be resolved.
      * @since 0.22.14
      */
-    addUnknownSymbolResolver(
-        resolver: (ref: DeclarationReference) => string | undefined
-    ): void {
+    addUnknownSymbolResolver(resolver: ExternalSymbolResolver): void {
         this._externalSymbolResolvers.push(resolver);
     }
 
@@ -285,7 +283,7 @@ export class Converter extends ChildableComponent<
         ref: DeclarationReference,
         part?: CommentDisplayPart,
         refl?: Reflection
-    ): string | undefined {
+    ): ExternalResolveResult | string | undefined {
         for (const resolver of this._externalSymbolResolvers) {
             const resolved = resolver(ref, part, refl);
             if (resolved) return resolved;

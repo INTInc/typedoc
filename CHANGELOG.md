@@ -1,5 +1,38 @@
 # Unreleased
 
+## v0.23.24 (2023-01-07)
+
+### Bug Fixes
+
+-   Fixed an issue where signature comments were preferred over property comments for indirectly created function-properties, #2135.
+-   Fixed symlink handling when expanding entry points, #2130.
+
+### Thanks!
+
+-   @boneskull
+
+## v0.23.23 (2022-12-18)
+
+### Features
+
+-   Added `ts.Signature` to emitted `EVENT_CREATE_SIGNATURE` event, #2002.
+
+### Bug Fixes
+
+-   Links to members hidden by filter settings now temporarily override the filter, #2092.
+-   If `src/` and `src/x` are specified as entry points, `src/` will no longer be ignored, #2121.
+
+## v0.23.22 (2022-12-11)
+
+### Features
+
+-   Add support for defining the kind sort order, #2109.
+
+### Bug Fixes
+
+-   Normalize all file paths on Windows, #2113.
+-   Fix `@link` tags within lists, #2103.
+
 ## v0.23.21 (2022-11-14)
 
 ### Features
